@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.rest.Exception.UserException;
 import com.example.rest.dao.UserDao;
@@ -103,9 +104,14 @@ public class UserServiceImpl implements UserService {
 		if (user == null) {
 			throw new UserException(ResourceManager.getMessage(USER_NOT_REGISTERED, null, "not.found", locale));
 		}
-		if (user != null && !user.getPassword().equals(userModel.getPassword())) {
+		String password = passwordEncoder.encryptPassword(userModel.getPassword());
+		System.out.println("Request pws ===> "+password);
+		System.out.println(user.getPassword());
+		BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
+
+		if ( !(bcryptPasswordEncoder.matches(userModel.getPassword(), user.getPassword()) ) ) {
 			throw new UserException(ResourceManager.getProperty(PASSWORD_MISMATCH));
-		}
+		} 
 
 		try {
 			userModel = dozerMapper.map(user, UserModel.class);
