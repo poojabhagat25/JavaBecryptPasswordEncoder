@@ -106,6 +106,9 @@
 	<bean class="org.apache.cxf.interceptor.LoggingInInterceptor" id="loggingInInterceptor" />
 	<bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" id="logOutInterceptor" />
 
+	<!-- Validation class bean -->
+	<bean class="com.example.rest.util.FieldValidation"	id="fieldValidation" />
+
 	<!-- web service beans -->
 	<bean class="com.example.rest.webservice.UserWebServiceImpl" id="userWebService"></bean>
 

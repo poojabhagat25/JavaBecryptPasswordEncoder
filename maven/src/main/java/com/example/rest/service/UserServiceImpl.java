@@ -19,6 +19,7 @@ import com.example.rest.dto.UserDTO;
 import com.example.rest.model.UserModel;
 import com.example.rest.util.ApplicationBeanUtil;
 import com.example.rest.util.EmailSender;
+import com.example.rest.util.FieldValidation;
 import com.example.rest.util.LocaleConverter;
 import com.example.rest.util.ResourceManager;
 import com.example.rest.util.TokenGenerator;
@@ -35,6 +36,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserDao userDao;
+	
+	@Autowired
+	private FieldValidation fieldValidation;
 
 	@Autowired
 	private Mapper dozerMapper;
@@ -60,6 +64,8 @@ public class UserServiceImpl implements UserService {
 	public UserModel saveUser(UserModel userModel, HttpServletRequest request) throws UserException {
 		Locale locale = LocaleConverter.getLocaleFromRequest(request);
 		UserDTO userDTO = userDao.checkUser(userModel.getEmailId());
+		
+		fieldValidation.signUpValidation(userModel);
 		
 		if (userDTO != null) {
 			// already exist
