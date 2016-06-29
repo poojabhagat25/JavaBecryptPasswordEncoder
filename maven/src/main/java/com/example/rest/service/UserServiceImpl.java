@@ -31,12 +31,13 @@ import static com.example.rest.constants.RestConstants.PASSWORD_MISMATCH;
 import static com.example.rest.constants.RestConstants.USER_NOT_REGISTERED;
 import static com.example.rest.constants.RestConstants.LOG_IN_FAILED;
 import static com.example.rest.constants.RestConstants.PASSWORD_VALIDATION_FAILED;
+
 public class UserServiceImpl implements UserService {
 	private static Logger logger = Logger.getLogger(UserServiceImpl.class);
 
 	@Autowired
 	private UserDao userDao;
-	
+
 	@Autowired
 	private FieldValidation fieldValidation;
 
@@ -45,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-	
+
 	public void setUserDao(UserDao userDao) {
 		this.userDao = userDao;
 	}
@@ -60,13 +61,22 @@ public class UserServiceImpl implements UserService {
 		return dto;
 	}
 
-	// @Override
+	/**
+	 * This method is for sign-up user.
+	 * 
+	 * @param UserModel
+	 *            contains user data
+	 * @param HttpServletRequest
+	 * @return UserModel.
+	 * @throws UserException
+	 */
+	@Override
 	public UserModel saveUser(UserModel userModel, HttpServletRequest request) throws UserException {
 		Locale locale = LocaleConverter.getLocaleFromRequest(request);
 		UserDTO userDTO = userDao.checkUser(userModel.getEmailId());
-		
+
 		fieldValidation.signUpValidation(userModel);
-		
+
 		if (userDTO != null) {
 			// already exist
 			throw new UserException(ResourceManager.getMessage(USER_ALREADY_EXIST_EXCEPTION, null, NOT_FOUND, locale));
@@ -81,7 +91,7 @@ public class UserServiceImpl implements UserService {
 			String authToken = TokenGenerator.generateToken(userModel.getEmailId() + new Date());
 			userDTO.setAuthToken(authToken);
 			userDTO = userDao.saveUser(userDTO);
-			
+
 			// To send an email after successful registration.
 			EmailDTO emailDTO = new EmailDTO();
 			emailDTO.setTo(userDTO.getEmailId());
@@ -102,27 +112,35 @@ public class UserServiceImpl implements UserService {
 		return userModel;
 	}
 
-	// @Override
+	/**
+	 * This method is for login purpose.
+	 * 
+	 * @param UserModel
+	 *            contains user emailId and password.
+	 * @param HttpServletRequest
+	 * @return UserModel.
+	 * @throws Exception
+	 */
+	@Override
 	public UserModel logIn(UserModel userModel, HttpServletRequest request) throws Exception {
 		Locale locale = LocaleConverter.getLocaleFromRequest(request);
 
-		if(userModel.getPassword()==null || userModel.getPassword().trim().isEmpty())
-		{
+		if (userModel.getPassword() == null || userModel.getPassword().trim().isEmpty()) {
 			throw new UserException(ResourceManager.getMessage(PASSWORD_VALIDATION_FAILED, null, NOT_FOUND, null));
 		}
 		UserDTO user = userDao.checkUser(userModel.getEmailId());
 		if (user == null) {
 			throw new UserException(ResourceManager.getMessage(USER_NOT_REGISTERED, null, "not.found", locale));
 		}
-		
+
 		String password = passwordEncoder.encryptPassword(userModel.getPassword());
-		System.out.println("Request pws ===> "+password);
+		System.out.println("Request pws ===> " + password);
 		System.out.println(user.getPassword());
 		BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
 
-		if ( !(bcryptPasswordEncoder.matches(userModel.getPassword(), user.getPassword()) ) ) {
+		if (!(bcryptPasswordEncoder.matches(userModel.getPassword(), user.getPassword()))) {
 			throw new UserException(ResourceManager.getProperty(PASSWORD_MISMATCH));
-		} 
+		}
 
 		try {
 			userModel = dozerMapper.map(user, UserModel.class);
@@ -131,8 +149,17 @@ public class UserServiceImpl implements UserService {
 		}
 		return userModel;
 	}
-	
-//	@Override
+
+	/**
+	 * resendPassword API.
+	 * 
+	 * @param UserModel
+	 *            contains user email address.
+	 * @param HttpServletRequest
+	 * @return ResponseModel.
+	 * @throws UserException
+	 */
+	@Override
 	public void resendPassword(HttpServletRequest request, String email) throws UserException {
 		Locale locale = LocaleConverter.getLocaleFromRequest(request);
 		EmailDTO emailDTO = new EmailDTO();
@@ -142,7 +169,7 @@ public class UserServiceImpl implements UserService {
 			logger.error(ResourceManager.getMessage(USER_NOT_REGISTERED, null, NOT_FOUND, locale));
 			throw new UserException(ResourceManager.getMessage(USER_NOT_REGISTERED, null, NOT_FOUND, locale));
 		}
-	
+
 		String newPassword = TokenGenerator.systemGeneratedPassword();
 		String encryptedPassword = passwordEncoder.encryptPassword(newPassword);
 		retrievedUser.setPassword(encryptedPassword);
@@ -160,21 +187,28 @@ public class UserServiceImpl implements UserService {
 		}
 
 	}
-	
-//	@Override
-	public List<UserModel> getUserList()throws Exception{
-		List<UserModel> userModels = new ArrayList<UserModel>() ;
-		try{
+
+	/**
+	 * API to get all users.
+	 * 
+	 * @param HttpServletRequest
+	 * @return List<UserModel>.
+	 * @throws Exception
+	 */
+	@Override
+	public List<UserModel> getUserList() throws Exception {
+		List<UserModel> userModels = new ArrayList<UserModel>();
+		try {
 			List<UserDTO> userDTOs = userDao.getUserList();
-			for(UserDTO userDTO:userDTOs){
+			for (UserDTO userDTO : userDTOs) {
 				UserModel userModel = dozerMapper.map(userDTO, UserModel.class);
 				userModels.add(userModel);
 			}
-		}catch(Exception ex){
+		} catch (Exception ex) {
 			throw ex;
 		}
 		return userModels;
-		
+
 	}
 
 }

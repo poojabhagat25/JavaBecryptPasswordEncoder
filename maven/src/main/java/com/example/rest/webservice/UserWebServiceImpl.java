@@ -53,8 +53,19 @@ public class UserWebServiceImpl implements UserWebService {
 
 	}
 
+	/**
+	 * This method is for sign-up user.
+	 * 
+	 * @param UserModel
+	 *            contains user data
+	 * @param HttpServletRequest
+	 * @param HttpServletResponse
+	 * @return UserModel.
+	 * @throws UserException,
+	 *             Exception
+	 */
 	@POST
-	// @Override
+	@Override
 	public ResponseModel signUpUser(@Context HttpServletRequest request, @Context HttpServletResponse response,
 			UserModel userModel) throws UserException {
 		logger.info("<------inside signUpUser start------>");
@@ -68,9 +79,18 @@ public class UserWebServiceImpl implements UserWebService {
 		return responseModel;
 	}
 
+	/**
+	 * This method is for login purpose.
+	 * 
+	 * @param UserModel
+	 *            contains user emailId and password.
+	 * @param HttpServletRequest
+	 * @return UserModel.
+	 * @throws Exception
+	 */
 	@POST
 	@Path("/logIn")
-	// @Override
+	@Override
 	public ResponseModel logIn(@Context HttpServletRequest request, UserModel userModel) throws Exception {
 		Locale locale = LocaleConverter.getLocaleFromRequest(request);
 		ResponseModel responseModel = null;
@@ -82,6 +102,16 @@ public class UserWebServiceImpl implements UserWebService {
 		return responseModel;
 	}
 
+	
+	/**
+	 * resendPassword API.
+	 * 
+	 * @param UserModel
+	 *            contains user email address.
+	 * @param HttpServletRequest
+	 * @return ResponseModel.
+	 * @throws UserException
+	 */
 	@POST
 	@Path("/resendPassword")
 	public ResponseModel resendPassword(@Context HttpServletRequest request, UserModel userModel) throws UserException {
@@ -93,6 +123,7 @@ public class UserWebServiceImpl implements UserWebService {
 		return responseModel;
 	}
 
+	
 	@GET
 	@Path("/getUserList")
 	public ResponseModel getUserList(@Context HttpServletRequest request) throws Exception {
