@@ -30,7 +30,7 @@ import static com.example.rest.constants.RestConstants.USER_ALREADY_EXIST_EXCEPT
 import static com.example.rest.constants.RestConstants.PASSWORD_MISMATCH;
 import static com.example.rest.constants.RestConstants.USER_NOT_REGISTERED;
 import static com.example.rest.constants.RestConstants.LOG_IN_FAILED;
-
+import static com.example.rest.constants.RestConstants.PASSWORD_VALIDATION_FAILED;
 public class UserServiceImpl implements UserService {
 	private static Logger logger = Logger.getLogger(UserServiceImpl.class);
 
@@ -106,10 +106,15 @@ public class UserServiceImpl implements UserService {
 	public UserModel logIn(UserModel userModel, HttpServletRequest request) throws Exception {
 		Locale locale = LocaleConverter.getLocaleFromRequest(request);
 
+		if(userModel.getPassword()==null || userModel.getPassword().trim().isEmpty())
+		{
+			throw new UserException(ResourceManager.getMessage(PASSWORD_VALIDATION_FAILED, null, NOT_FOUND, null));
+		}
 		UserDTO user = userDao.checkUser(userModel.getEmailId());
 		if (user == null) {
 			throw new UserException(ResourceManager.getMessage(USER_NOT_REGISTERED, null, "not.found", locale));
 		}
+		
 		String password = passwordEncoder.encryptPassword(userModel.getPassword());
 		System.out.println("Request pws ===> "+password);
 		System.out.println(user.getPassword());
@@ -139,13 +144,13 @@ public class UserServiceImpl implements UserService {
 		}
 	
 		String newPassword = TokenGenerator.systemGeneratedPassword();
-		String encryptedPassword = TokenGenerator.encodeString(newPassword);
+		String encryptedPassword = passwordEncoder.encryptPassword(newPassword);
 		retrievedUser.setPassword(encryptedPassword);
 
 		emailDTO.setFrom("Rest API Demo");
 		emailDTO.setTo(retrievedUser.getEmailId());
 		emailDTO.setUsername(retrievedUser.getFirstName());
-		emailDTO.setPassword(retrievedUser.getPassword());
+		emailDTO.setPassword(newPassword);
 		try {
 			// Working code using velocity dependancies
 			EmailSender emailSender = (EmailSender) ApplicationBeanUtil.getApplicationContext().getBean("mail");

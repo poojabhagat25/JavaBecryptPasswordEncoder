@@ -8,7 +8,6 @@ public class PasswordEncoderGenerator implements PasswordEncoder {
 	public String encryptPassword(String plainTextPassword) {
 			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 			String hashedPassword = passwordEncoder.encode(plainTextPassword);
-
 			System.out.println(hashedPassword);
 			return hashedPassword;
 	  }
